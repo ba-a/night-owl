@@ -1,0 +1,39 @@
+package bandi.nightowl.inject
+
+import android.content.Context
+import android.content.SharedPreferences
+import bandi.nightowl.NightOwlApp
+import dagger.Module
+import dagger.Provides
+import retrofit2.Retrofit
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
+import retrofit2.converter.gson.GsonConverterFactory
+import javax.inject.Singleton
+
+/**
+ * Created by abauer on 05.11.17.
+ */
+@Module
+class AppModule {
+    @Provides
+    fun provideContext(application: NightOwlApp): Context {
+        return application.applicationContext
+    }
+
+    @Singleton
+    @Provides
+    fun provideAuthSharedPrefs(context: Context): SharedPreferences {
+        return context.getSharedPreferences("SHARED_PREFS", Context.MODE_PRIVATE)
+    }
+
+    @Singleton
+    @Provides
+    fun provideRetrofit(): Retrofit {
+        return Retrofit.Builder()
+                .baseUrl("https://googleapi.com/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build()
+    }
+
+}
