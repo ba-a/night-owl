@@ -23,6 +23,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import dagger.android.support.AndroidSupportInjection
 import kotlinx.android.synthetic.main.custom_map_fragment.*
@@ -101,39 +102,27 @@ class PlacesMapFragment : Fragment() {
     private fun observePlacesData() {
         placesViewModel.getPlacesLiveData().observe(this, Observer<PlacesResult> {
             if (it?.status == "OK" && it.results != null) {
+                val boundsBuilder = LatLngBounds.Builder();
+
                 val points = mutableListOf<LatLng>()
                 it.results
                         .map {
-                            points.add(LatLng(it.geometry!!.location!!.lat, it.geometry.location!!.lng))
+                            val pos = LatLng(it.geometry!!.location!!.lat, it.geometry.location!!.lng)
+                            boundsBuilder.include(pos)
+                            points.add(pos)
                             MarkerOptions()
                                     .position(LatLng(it.geometry.location.lat, it.geometry.location.lng))
                                     .title(it.name)
                         }
                         .forEach { marker -> map?.addMarker(marker) }
 
-                val center = CameraUpdateFactory.newLatLng(centerOfPositions(points))
-                val zoom = CameraUpdateFactory.zoomTo(12f)
+                val padding = ((custom_map_base.width * 10) / 100); // offset from edges of the map
 
-                map?.moveCamera(center)
-                map?.animateCamera(zoom)
+                map?.moveCamera(CameraUpdateFactory.newLatLngBounds(boundsBuilder.build(),
+                        padding))
             }
         })
     }
-
-    private fun centerOfPositions(points : List<LatLng>) : LatLng {
-        var latitude = 0.0
-        var longitude = 0.0
-        val amountOfPoints = points.size
-
-        for (point in points) {
-            latitude += point.latitude
-            longitude += point.longitude
-        }
-        return LatLng(latitude / amountOfPoints, longitude / amountOfPoints);
-    }
-
-
-
 
     private fun startSearchBasedOnLocation() {
         // Here, thisActivity is the current activity
