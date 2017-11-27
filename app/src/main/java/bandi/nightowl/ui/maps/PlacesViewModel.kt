@@ -3,6 +3,7 @@ package bandi.nightowl.ui.maps
 import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
+import android.location.Location
 import android.util.Log
 import android.view.View
 import bandi.nightowl.BuildConfig
@@ -22,31 +23,32 @@ import javax.inject.Inject
 class PlacesViewModel @Inject constructor(private val retrofit: Retrofit,
                                           private val locationUseCase: LocationUseCase) : ViewModel() {
 
-    private var placesLiveData: MutableLiveData<PlacesResult>? = null
-
+    private var placesLiveData: MutableLiveData<PlacesResult> = MutableLiveData<PlacesResult>()
     private var disposables = CompositeDisposable()
-
     private val loadingStatus = MutableLiveData<Int>()
-
-    private val error = MutableLiveData<String>()
+    private val currentLocationLiveData = MutableLiveData<Location>()
+    private val errorLiveData = MutableLiveData<String>()
 
     fun getPlacesLiveData(): LiveData<PlacesResult> {
-        if (placesLiveData == null) {
-            placesLiveData = MutableLiveData<PlacesResult>()
-        }
-        return placesLiveData as MutableLiveData<PlacesResult>
+        return placesLiveData
     }
 
-    fun getLoadingStatus(): MutableLiveData<Int> {
+    fun getCurrentLocationLiveData(): LiveData<Location> {
+        disposables.add(locationUseCase.listenToLocationRequests().subscribe({
+            location -> currentLocationLiveData.postValue(location)
+        }))
+        return currentLocationLiveData
+    }
+
+    fun getLoadingStatusLiveData(): MutableLiveData<Int> {
         return loadingStatus
     }
 
-    fun getError(): MutableLiveData<String> {
-        return error
+    fun getErrorLiveData(): MutableLiveData<String> {
+        return errorLiveData
     }
 
     fun loadPlaces() {
-
         val placesApi = retrofit.create<PlacesApi>(PlacesApi::class.java)
         val locationCall = locationUseCase.getLocation()
 
@@ -60,12 +62,13 @@ class PlacesViewModel @Inject constructor(private val retrofit: Retrofit,
                         .subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread())
                         .doOnSubscribe({ loadingStatus.setValue(View.VISIBLE) })
-                        .doAfterTerminate({ loadingStatus.setValue(View.GONE) })
                         .subscribe({
                             Log.i("Success", "places")
-                            placesLiveData?.postValue(it)
+                            placesLiveData.postValue(it)
+                            loadingStatus.setValue(View.GONE)
                         }, {
                             Log.e("Error", "places", it)
+                            loadingStatus.setValue(View.GONE)
                         }))
 
     }

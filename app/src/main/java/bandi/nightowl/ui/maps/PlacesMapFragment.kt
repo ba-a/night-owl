@@ -6,6 +6,7 @@ import android.arch.lifecycle.ViewModelProvider
 import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
 import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
@@ -20,10 +21,10 @@ import bandi.nightowl.data.places.PlacesResult
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 import dagger.android.support.AndroidSupportInjection
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.custom_map_fragment.*
 import javax.inject.Inject
 
@@ -61,6 +62,7 @@ class PlacesMapFragment : Fragment() {
         observePlacesData()
         observeLoadingStatus()
         observeError()
+        observeveCurrentLocationUpdates()
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
 
@@ -74,14 +76,25 @@ class PlacesMapFragment : Fragment() {
     }
 
     private fun observeError() {
-        placesViewModel.getError().observe(activity, Observer {
-            Snackbar.make(home_bottom_nav, it.toString(), Snackbar.LENGTH_LONG).show()
+        placesViewModel.getErrorLiveData().observe(this, Observer {
+            Snackbar.make(custom_map_base, it.toString(), Snackbar.LENGTH_LONG).show()
         })
     }
 
     private fun observeLoadingStatus() {
-        placesViewModel.getLoadingStatus().observe(this, Observer<Int> {
-            main_progressBar.visibility = it!!
+        placesViewModel.getLoadingStatusLiveData().observe(this, Observer<Int> {
+            map_progressBar.visibility = it!!
+        })
+    }
+
+    private fun observeveCurrentLocationUpdates() {
+        placesViewModel.getCurrentLocationLiveData().observe(this, Observer<Location> {
+            it?.let {
+                map?.addMarker(MarkerOptions()
+                        .position(LatLng(it.latitude, it.longitude))
+                        .icon(BitmapDescriptorFactory.fromResource(android.R.drawable.ic_menu_mylocation))
+                        .title(getString(R.string.current_position)))
+            }
         })
     }
 
@@ -110,13 +123,13 @@ class PlacesMapFragment : Fragment() {
     private fun centerOfPositions(points : List<LatLng>) : LatLng {
         var latitude = 0.0
         var longitude = 0.0
-        var amountOfPoints = points.size
+        val amountOfPoints = points.size
 
         for (point in points) {
             latitude += point.latitude
             longitude += point.longitude
         }
-        return LatLng(latitude/amountOfPoints, longitude/amountOfPoints);
+        return LatLng(latitude / amountOfPoints, longitude / amountOfPoints);
     }
 
 
