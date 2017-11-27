@@ -14,8 +14,14 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders = [apiKey:getApiKey()]
     }
+
     buildTypes {
+        // Load the api key from properties and set to BuildConfig
+        applicationVariants.all { variant ->
+            variant.buildConfigField "String", "API_KEY", "\""+ getApiKey() + "\""
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -25,6 +31,12 @@ android {
     packagingOptions {
         exclude 'META-INF/rxjava.properties'
     }
+}
+
+def getApiKey(){
+    Properties props = new Properties()
+    props.load(new FileInputStream(new File('secrets.properties')))
+    return props['API_KEY']
 }
 
 final DAGGER_VERSION = "2.12"
@@ -39,6 +51,7 @@ dependencies {
     implementation "com.android.support:design:$SUPPORT_VERSION"
 
     implementation 'com.google.android.gms:play-services-maps:11.6.0'
+    implementation 'com.google.android.gms:play-services-location:11.6.0'
 
     implementation 'com.squareup.retrofit2:retrofit:2.3.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
