@@ -3,6 +3,7 @@ package bandi.nightowl.inject
 import android.content.Context
 import android.content.SharedPreferences
 import bandi.nightowl.NightOwlApp
+import bandi.nightowl.data.usecase.LocationUseCase
 import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
@@ -36,4 +37,9 @@ class AppModule {
                 .build()
     }
 
+    @Singleton
+    @Provides
+    fun provideLocationUseCase(context: Context) : LocationUseCase {
+        return LocationUseCase(context)
+    }
 }
