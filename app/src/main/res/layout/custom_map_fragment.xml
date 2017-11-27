@@ -1,18 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.widget.RelativeLayout
+<android.support.design.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/custom_map_base"
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
-    <ProgressBar
-        style="?android:attr/progressBarStyle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/main_progressBar"
-        android:layout_centerInParent="true"
-        android:visibility="invisible"
-        android:layout_marginTop="8dp"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     <fragment
         class="com.google.android.gms.maps.SupportMapFragment"
@@ -20,6 +16,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         />
+
+    <ProgressBar
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/map_progressBar"
+        android:layout_centerInParent="true"
+        android:visibility="invisible"
+        android:layout_marginTop="8dp"/>
 
     <ImageButton
         android:layout_width="wrap_content"
@@ -31,5 +36,6 @@
         android:layout_marginBottom="32dp"
         android:id="@+id/imageButton_map_locate"
         android:contentDescription="Search your location"/>
+    </RelativeLayout>
 
-</android.widget.RelativeLayout>
+</android.support.design.widget.CoordinatorLayout>
