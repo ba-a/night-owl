@@ -12,7 +12,7 @@ import retrofit2.http.Query
 interface PlacesApi {
 
     @Headers("Accept: application/json")
-    @GET("https://maps.googleapis.com/maps/api/place/nearbysearch/json?radius=500&types=food")
+    @GET("https://maps.googleapis.com/maps/api/place/nearbysearch/json?radius=5000&types=bar&opennow")
     fun fetchNearbyPlaces(@Query("location") location :String, @Query("key") key :String): Single<PlacesResult>
 
 
