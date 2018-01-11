@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.support.design.widget.Snackbar
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.Fragment
+import android.support.v4.app.FragmentTransaction
 import android.support.v4.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
@@ -18,6 +19,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import bandi.nightowl.R
 import bandi.nightowl.data.places.PlacesResult
+import bandi.nightowl.ui.detail.PlaceDetailFragment
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.SupportMapFragment
@@ -57,23 +59,42 @@ class PlacesMapFragment : Fragment() {
         return inflater.inflate(R.layout.custom_map_fragment, container, false)
     }
 
-    override fun onViewCreated(view: View?, savedInstanceState: Bundle?) {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         placesViewModel = ViewModelProviders.of(this, viewModelFactory).get(PlacesViewModel::class.java)
         observePlacesData()
         observeLoadingStatus()
         observeError()
-        observeveCurrentLocationUpdates()
+        observeCurrentLocationUpdates()
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map_fragment) as SupportMapFragment
 
         mapFragment.getMapAsync({
             map = it
+            map?.setOnMarkerClickListener { showDetail(it.title) }
         })
 
         imageButton_map_locate.setOnClickListener {
             startSearchBasedOnLocation()
         }
+    }
+
+    var placesResult = PlacesResult();
+
+    private fun showDetail(title: String?) : Boolean{
+        placesResult.results?.forEach {
+            if(it.name.equals(title)) {
+                val placeDetail = PlaceDetailFragment.newInstance(it)
+                activity!!.supportFragmentManager
+                        .beginTransaction()
+                        .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE)
+                        .replace(R.id.home_content, placeDetail, "DETAIL")
+                        .addToBackStack(null)
+                        .commit()
+            }
+        }
+
+        return true
     }
 
     private fun observeError() {
@@ -88,7 +109,7 @@ class PlacesMapFragment : Fragment() {
         })
     }
 
-    private fun observeveCurrentLocationUpdates() {
+    private fun observeCurrentLocationUpdates() {
         placesViewModel.getCurrentLocationLiveData().observe(this, Observer<Location> {
             it?.let {
                 map?.addMarker(MarkerOptions()
@@ -102,6 +123,7 @@ class PlacesMapFragment : Fragment() {
     private fun observePlacesData() {
         placesViewModel.getPlacesLiveData().observe(this, Observer<PlacesResult> {
             if (it?.status == "OK" && it.results != null) {
+                placesResult = it
                 val boundsBuilder = LatLngBounds.Builder();
 
                 val points = mutableListOf<LatLng>()
@@ -126,11 +148,11 @@ class PlacesMapFragment : Fragment() {
 
     private fun startSearchBasedOnLocation() {
         // Here, thisActivity is the current activity
-        if (ContextCompat.checkSelfPermission(activity,
+        if (ContextCompat.checkSelfPermission(activity!!,
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
             // No explanation needed, we can request the permission.
-            ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+            ActivityCompat.requestPermissions(activity!!, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
                     PERMISSION_REQUEST_FINE_LOCATION)
 
         } else {
