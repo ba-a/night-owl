@@ -5,22 +5,22 @@ apply plugin: 'kotlin-kapt'
 apply plugin: 'kotlin-android-extensions'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 27
     buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "bandi.nightowl"
         minSdkVersion 21
-        targetSdkVersion 26
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders = [apiKey:getApiKey()]
+        manifestPlaceholders = [apiKey: getApiKey()]
     }
 
     buildTypes {
         // Load the api key from properties and set to BuildConfig
         applicationVariants.all { variant ->
-            variant.buildConfigField "String", "API_KEY", "\""+ getApiKey() + "\""
+            variant.buildConfigField "String", "API_KEY", "\"" + getApiKey() + "\""
         }
         release {
             minifyEnabled false
@@ -31,16 +31,21 @@ android {
     packagingOptions {
         exclude 'META-INF/rxjava.properties'
     }
+
+
+    androidExtensions {
+        experimental = true
+    }
 }
 
-def getApiKey(){
+def getApiKey() {
     Properties props = new Properties()
     props.load(new FileInputStream(new File('secrets.properties')))
     return props['API_KEY']
 }
 
 final DAGGER_VERSION = "2.12"
-final SUPPORT_VERSION = "26.1.0"
+final SUPPORT_VERSION = "27.0.2"
 final VERSION_ARCH = "1.0.0"
 
 dependencies {
@@ -64,12 +69,18 @@ dependencies {
     implementation "android.arch.lifecycle:runtime:$VERSION_ARCH"
     implementation "android.arch.lifecycle:extensions:$VERSION_ARCH"
     implementation "android.arch.lifecycle:reactivestreams:$VERSION_ARCH"
+    implementation "com.android.support:support-v4:$SUPPORT_VERSION"
     kapt "android.arch.lifecycle:compiler:$VERSION_ARCH"
 
+    implementation 'com.github.bumptech.glide:glide:4.4.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.4.0'
 
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+
+    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
+
 
 
     implementation "com.google.dagger:dagger:${DAGGER_VERSION}"
